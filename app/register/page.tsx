@@ -1,71 +1,14 @@
-'use client'
 
-import { supabase } from '../supabaseClient'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation' 
+'use client'
+import { useRegisterLogic } from './logic';
 
 export default function RegisterPage() {
-  const router = useRouter()
-
- 
-  const [role, setRole] = useState('users')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-
- 
-  const [phone, setPhone] = useState('')       
-  const [platNomor, setPlatNomor] = useState('')
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-
-    let result;
-
-    if (role === 'drivers') {
-     
-      result = await supabase
-        .from('drivers') 
-        .insert([
-          {
-            driver_name: name,         
-            driver_email: email,       
-            driver_password: password, 
-            driver_number: phone,     
-            plat_nomor: platNomor,    
-          },
-        ])
-    } else {
-      
-      result = await supabase
-        .from('users') 
-        .insert([
-          {
-            user_name: username, 
-            user_email: email,       
-            user_password: password, 
-            user_point: 0,
-            user_phone: phone,       
-            fullname: name,           
-          },
-        ])
-    }
-
-    setLoading(false)
-
-    if (result.error) {
-      console.error('Error inserting data:', result.error)
-      alert(`Registration failed: ${result.error.message}`)
-    } else {
-      alert(`Registration successful sebagai ${role === 'drivers' ? 'Driver' : 'User'}! Silakan log in.`)
-      router.push('/login') 
-    } 
-  }
-
-  return (
+  const { 
+    role, setRole, name, setName, email, setEmail, username, setUsername, 
+    password, setPassword, phone, setPhone, platNomor, setPlatNomor, 
+    loading, handleRegister, router 
+  } = useRegisterLogic();
+return (
     <div style={{ padding: '20px', maxWidth: '400px', margin: '60px auto', color: 'black', fontFamily: 'sans-serif' }}>
       <div style={{ background: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
         
@@ -197,7 +140,7 @@ export default function RegisterPage() {
           Sudah punya akun?{' '}
           <span 
             onClick={() => router.push('/login')} 
-            style={{ color: '#486e56', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
+            style={{ color: '#178fff', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
           >
             Login di sini
           </span>
