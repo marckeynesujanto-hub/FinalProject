@@ -23,11 +23,20 @@ const features = [
   {
     href: '/map',
     icon: '🗺️',
-    title: 'Peta & Produk',
-    desc: 'Temukan tempat sampah terdekat, beli produk daur ulang',
+    title: 'Peta & TPS',
+    desc: 'Temukan tempat sampah terdekat di sekitarmu',
     color: 'bg-blue-50 border-blue-200',
     iconBg: 'bg-blue-100',
     badge: null,
+  },
+  {
+    href: '/marketplace',
+    icon: '♻️',
+    title: 'Jual Beli Sampah',
+    desc: 'Jual sampah daur ulangmu atau beli dari orang lain',
+    color: 'bg-teal-50 border-teal-200',
+    iconBg: 'bg-teal-100',
+    badge: 'Baru',
   },
 ]
 
