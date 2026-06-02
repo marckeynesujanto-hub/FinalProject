@@ -1,137 +1,45 @@
 'use client'
+import { useMarketplaceLogic } from './logic';
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/app/supabaseClient'
-import { useRouter } from 'next/navigation'
-
-
-interface RecycleProduct {
-  recycle_product_id: string
-  product_name: string
-  product_price: number
-  product_stock: number
-  seller_name: string
-  seller_phone: string
-  description: string
-  category: string
-  weight_kg: number
-  location_area: string
-  is_available: boolean
-  created_at: string
-}
-
+// Konstanta di luar fungsi komponen
 const CATEGORY_ICONS: Record<string, string> = {
   Kardus: '📦', Plastik: '🥤', Kertas: '📰',
   Logam: '🔧', Kaca: '🫙', Lainnya: '♻️',
-}
-const CATEGORIES = ['Semua', 'Kardus', 'Plastik', 'Kertas', 'Logam', 'Kaca', 'Lainnya']
-
+};
+const CATEGORIES = ['Semua', 'Kardus', 'Plastik', 'Kertas', 'Logam', 'Kaca', 'Lainnya'];
 const FORM_FIELDS = [
-  { key: 'product_name',  label: 'Nama Sampah *',      placeholder: 'Contoh: Kardus Bekas, Botol Plastik...', type: 'text'   },
-  { key: 'seller_name',   label: 'Nama Penjual *',      placeholder: 'Nama lengkap kamu',                      type: 'text'   },
-  { key: 'seller_phone',  label: 'No. WhatsApp',        placeholder: '08xxxxxxxxxx',                           type: 'tel'    },
-  { key: 'product_price', label: 'Harga per kg (Rp) *', placeholder: 'Contoh: 2000',                           type: 'number' },
-  { key: 'weight_kg',     label: 'Estimasi Berat (kg)', placeholder: 'Contoh: 10',                             type: 'number' },
-  { key: 'product_stock', label: 'Stok (kg)',           placeholder: 'Contoh: 50',                             type: 'number' },
-  { key: 'location_area', label: 'Area Lokasi',         placeholder: 'Contoh: Jakarta Selatan',                type: 'text'   },
-]
+  { key: 'product_name', label: 'Nama Sampah *', placeholder: 'Contoh: Kardus Bekas...', type: 'text' },
+  { key: 'seller_name', label: 'Nama Penjual *', placeholder: 'Nama lengkap kamu', type: 'text' },
+  { key: 'seller_phone', label: 'No. WhatsApp', placeholder: '08xxxxxxxxxx', type: 'tel' },
+  { key: 'product_price', label: 'Harga per kg (Rp) *', placeholder: 'Contoh: 2000', type: 'number' },
+  { key: 'weight_kg', label: 'Estimasi Berat (kg)', placeholder: 'Contoh: 10', type: 'number' },
+  { key: 'product_stock', label: 'Stok (kg)', placeholder: 'Contoh: 50', type: 'number' },
+  { key: 'location_area', label: 'Area Lokasi', placeholder: 'Contoh: Jakarta Selatan', type: 'text' },
+];
 
 export default function MarketplacePage() {
-  const [tab, setTab] = useState<'beli' | 'jual'>('beli')
-  const [products, setProducts] = useState<RecycleProduct[]>([])
-  const [loading, setLoading] = useState(false)
-  const [categoryFilter, setCategoryFilter] = useState('Semua')
-  const [selectedProduct, setSelectedProduct] = useState<RecycleProduct | null>(null)
-  const [orderModal, setOrderModal] = useState(false)
-  const [ordering, setOrdering] = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState(false)
-  const router = useRouter()
-
-  const [form, setForm] = useState({
-    product_name: '', seller_name: '', seller_phone: '',
-    product_price: '', weight_kg: '', product_stock: '',
-    location_area: '', description: '', category: 'Kardus',
-  })
-  const [submitting, setSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
-
-  useEffect(() => {
-    fetchProducts()
-  }, [])
-
-  const fetchProducts = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('recycles')
-        .select('*')
-        .eq('is_available', true)
-        .order('created_at', { ascending: false })
-      if (!error && data) setProducts(data)
-    } catch { }
-    setLoading(false)
-  }
-
-  const handleOrder = (product: RecycleProduct) => {
-    setSelectedProduct(product)
-    setOrderModal(true)
-    setOrderSuccess(false)
-  }
-
-  const confirmOrder = async () => {
-  if (!selectedProduct) return
-  setOrdering(true) // redirect nya buat tracking
-  try {
-    await supabase.from('orders').insert({
-      user_id: null,
-      recycle_product_id: selectedProduct.recycle_product_id,
-      order_date: new Date().toISOString(),
-      order_price: selectedProduct.product_price,
-      order_status: 'pending',
-    })
-    setOrderSuccess(true)
-    setTimeout(() => {
-      setOrderModal(false)
-      router.push('/tracking/marketplaceTracking')
-    }, 1500)
-  } catch {
-    alert('Gagal membuat pesanan. Coba lagi.')
-  }
-  setOrdering(false)
-}
-
-  const handleSubmitJual = async () => {
-    if (!form.product_name || !form.product_price || !form.seller_name) {
-      alert('Isi nama produk, harga, dan nama penjual dulu!')
-      return
-    }
-    setSubmitting(true)
-    try {
-      const { error } = await supabase.from('recycles').insert({
-        product_name: form.product_name,
-        product_price: parseFloat(form.product_price),
-        product_stock: parseInt(form.product_stock) || 1,
-        seller_name: form.seller_name,
-        seller_phone: form.seller_phone,
-        description: form.description,
-        category: form.category,
-        weight_kg: parseFloat(form.weight_kg) || 1,
-        location_area: form.location_area,
-        is_available: true,
-      })
-      if (error) throw error
-      setSubmitSuccess(true)
-      fetchProducts()
-    } catch {
-      alert('Gagal posting. Coba lagi.')
-    }
-    setSubmitting(false)
-  }
-
-  const filteredProducts = categoryFilter === 'Semua'
-    ? products
-    : products.filter(p => p.category === categoryFilter)
-
+  const {
+    tab,
+    setTab,
+    loading,
+    categoryFilter,
+    setCategoryFilter,
+    filteredProducts,
+    form,
+    setForm,
+    handleSubmitJual,
+    submitting,
+    submitSuccess,
+    setSubmitSuccess,
+    orderModal,
+    setOrderModal,
+    selectedProduct,
+    handleOrder,
+    confirmOrder,
+    ordering,
+    orderSuccess
+  } =  useMarketplaceLogic();
+  
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
