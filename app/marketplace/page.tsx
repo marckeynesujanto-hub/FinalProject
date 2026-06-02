@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabaseClient'
+import { useRouter } from 'next/navigation'
+
 
 interface RecycleProduct {
   recycle_product_id: string
@@ -43,6 +45,7 @@ export default function MarketplacePage() {
   const [orderModal, setOrderModal] = useState(false)
   const [ordering, setOrdering] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
+  const router = useRouter()
 
   const [form, setForm] = useState({
     product_name: '', seller_name: '', seller_phone: '',
@@ -76,22 +79,26 @@ export default function MarketplacePage() {
   }
 
   const confirmOrder = async () => {
-    if (!selectedProduct) return
-    setOrdering(true)
-    try {
-      await supabase.from('orders').insert({
-        user_id: null,
-        recycle_product_id: selectedProduct.recycle_product_id,
-        order_date: new Date().toISOString(),
-        order_price: selectedProduct.product_price,
-        order_status: 'pending',
-      })
-      setOrderSuccess(true)
-    } catch {
-      alert('Gagal membuat pesanan. Coba lagi.')
-    }
-    setOrdering(false)
+  if (!selectedProduct) return
+  setOrdering(true) // redirect nya buat tracking
+  try {
+    await supabase.from('orders').insert({
+      user_id: null,
+      recycle_product_id: selectedProduct.recycle_product_id,
+      order_date: new Date().toISOString(),
+      order_price: selectedProduct.product_price,
+      order_status: 'pending',
+    })
+    setOrderSuccess(true)
+    setTimeout(() => {
+      setOrderModal(false)
+      router.push('/tracking/marketplaceTracking')
+    }, 1500)
+  } catch {
+    alert('Gagal membuat pesanan. Coba lagi.')
   }
+  setOrdering(false)
+}
 
   const handleSubmitJual = async () => {
     if (!form.product_name || !form.product_price || !form.seller_name) {
