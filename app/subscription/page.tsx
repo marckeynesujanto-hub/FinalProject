@@ -58,24 +58,39 @@ export default function SubscriptionPage() {
   }
 
   const handleSubmit = async () => {
-    if (jadwal.length === 0) return alert('Pilih minimal 1 hari penjemputan')
-    setLoading(true)
-    try {
-      const res = await fetch('/api/subscription', {
+  if (jadwal.length === 0) return alert('Pilih minimal 1 hari penjemputan')
+  // Pastikan userId tersedia (ambil dari localStorage atau state context Anda)
+  const userId = localStorage.getItem('user_id'); 
+  console.log("DEBUG: Mengirim user_id =", userId);
+  
+  setLoading(true)
+  try {
+    const res = await fetch('/api/subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paket, jadwal, isPaused, paymentMethod, user_id: userId }),
+    })
+    
+    if (res.ok) {
+      
+      await fetch('/api/points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paket, jadwal, isPaused, paymentMethod }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setSubscriptions(prev => [...prev, data])
-        setSuccess(true)
-        setTab('aktif')
-      }
-    } finally {
-      setLoading(false)
+        body: JSON.stringify({ user_id: userId, action: 'subscription' }),
+      });
+      // ----------------------------------
+
+      const data = await res.json()
+      setSubscriptions(prev => [...prev, data])
+      setSuccess(true)
+      setTab('aktif')
     }
+  } catch (err) {
+    console.error(err)
+  } finally {
+    setLoading(false)
   }
+}
 
   const activeSub = subscriptions[0]
   const allHistory = subscriptions.flatMap(s => s.riwayat)

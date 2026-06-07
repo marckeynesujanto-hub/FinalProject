@@ -33,9 +33,14 @@ export function useLoginLogic() {
 
     if (dbPassword === password) {
       alert(`Login Berhasil! Selamat Datang di ThrashIn sebagai ${role === 'drivers' ? 'Driver' : 'User'}.`);
+
+      const userId = role === 'drivers' ? data.driver_id : data.user_id;
+      localStorage.setItem('user_id', userId);
       localStorage.setItem('user_session', JSON.stringify(data));
       localStorage.setItem('user_role', role);
       router.push('/home');
+
+
     } else {
       alert('Password salah! Silakan coba lagi.');
     }

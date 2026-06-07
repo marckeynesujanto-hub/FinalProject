@@ -29,7 +29,10 @@ export async function POST(request: Request) {
       p_points: points,
     })
 
-    if (error) throw error
+    if (error){
+      console.error("DEBUG RPC ERROR:", error); // Lihat ini di terminal VS Code!
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } 
 
     // Get updated user points
     const { data: userData } = await supabase
