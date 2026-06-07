@@ -1,3 +1,6 @@
+'use client'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/app/supabaseClient'
 import Link from 'next/link'
 import InstallPrompt from '@/app/install/installprompt'
 
@@ -41,6 +44,44 @@ const features = [
 ]
 
 export default function Home() {
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) return; // Jika belum login, biarkan saja
+
+      // Ambil data user & poin
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('user_name, user_point')
+        .eq('user_id', userId)
+        .single();
+
+      // Ambil ranking dari tabel leaderboard
+      const { data: rank } = await supabase
+        .from('leaderboards')
+        .select('leaderboard_ranking')
+        .eq('user_id', userId)
+        .single();
+
+      if (user) {
+        setUserData({
+          ...user,
+          ranking: rank?.leaderboard_ranking || '-'
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) return <div className="p-10">Loading...</div>;
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <InstallPrompt />
@@ -49,10 +90,15 @@ export default function Home() {
       <div className="bg-green-600 px-5 pt-14 pb-8 rounded-b-3xl">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-green-200 text-sm">Selamat datang 👋</p>
+            {/* Bagian ini yang diubah */}
+            <p className="text-green-200 text-sm">
+              Halo, {userData?.user_name || 'User'} 👋
+            </p>
+            
             <h1 className="text-white text-2xl font-bold mt-0.5">TrashIN</h1>
             <p className="text-green-100 text-sm mt-0.5">Kelola sampah, jaga lingkungan</p>
           </div>
+          
           <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center text-xl">
             👤
           </div>
@@ -61,9 +107,9 @@ export default function Home() {
         {/* Stats */}
         <div className="flex gap-3 mt-5">
           {[
-            { value: '80', label: 'Poin Anda' },
+            { value: userData?.user_point || 0, label: 'Poin Anda' },
             { value: '3', label: 'Penjemputan' },
-            { value: '#12', label: 'Peringkat' },
+            { value: userData?.ranking || '-', label: 'Peringkat' },
           ].map(s => (
             <div key={s.label} className="flex-1 bg-white/20 rounded-2xl p-3 text-center">
               <p className="text-white text-xl font-bold">{s.value}</p>
