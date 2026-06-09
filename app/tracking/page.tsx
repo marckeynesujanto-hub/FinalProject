@@ -27,12 +27,11 @@ const STATUS_STEPS: { status: OrderStatus; label: string; desc: string; icon: st
   { status: 'done',         label: 'Selesai!',           desc: 'Sampah berhasil dibuang ke TPS. Terima kasih!', icon: '✅' },
 ]
 
-const DRIVER = {
-  name: 'Budi Santoso',
-  vehicle: 'Honda Vario · B 4521 XYZ',
-  rating: 4.9,
-  photo: '👨',
-  phone: '+62 812-3456-7890',
+interface Driver {
+  name: string
+  phone: string
+  vehicle: string
+  rating: string
 }
 
 interface NearestTPS {
@@ -58,6 +57,12 @@ export default function TrackingPage() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [status, setStatus] = useState<OrderStatus>('waiting')
   const [nearestTPS, setNearestTPS] = useState<NearestTPS | null>(null)
+  const [driver, setDriver] = useState<Driver>({
+    name: 'Mencari driver...',
+    phone: '',
+    vehicle: '',
+    rating: '4.9',
+  })
   const [eta, setEta] = useState<number>(8)
   const [showRating, setShowRating] = useState(false)
   const [rating, setRating] = useState(0)
@@ -65,10 +70,8 @@ export default function TrackingPage() {
   const animRef = useRef<NodeJS.Timeout | null>(null)
   const simulationStarted = useRef(false)
 
-  // Load Leaflet + GPS (same pattern as pageRenew.tsx)
   useEffect(() => {
     if (typeof window === 'undefined') return
-
     const load = async () => {
       if (!document.getElementById('leaflet-css')) {
         const link = document.createElement('link')
@@ -84,10 +87,8 @@ export default function TrackingPage() {
           document.head.appendChild(s)
         })
       }
-      // GPS after Leaflet loaded - same as pageRenew.tsx
       getUserLocation()
     }
-
     load().catch(console.error)
     return () => { if (animRef.current) clearTimeout(animRef.current) }
   }, [])
@@ -95,20 +96,16 @@ export default function TrackingPage() {
   const getUserLocation = () => {
     if (!navigator.geolocation) {
       const fb = { lat: -6.2088, lon: 106.8456 }
-      setUserLocation(fb)
-      initMap(fb)
-      return
+      setUserLocation(fb); initMap(fb); return
     }
     navigator.geolocation.getCurrentPosition(
       pos => {
         const loc = { lat: pos.coords.latitude, lon: pos.coords.longitude }
-        setUserLocation(loc)
-        initMap(loc)
+        setUserLocation(loc); initMap(loc)
       },
       () => {
         const fb = { lat: -6.2088, lon: 106.8456 }
-        setUserLocation(fb)
-        initMap(fb)
+        setUserLocation(fb); initMap(fb)
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )
@@ -117,31 +114,21 @@ export default function TrackingPage() {
   const initMap = (loc: UserLocation) => {
     if (!mapRef.current || leafletMap.current) return
     const L = (window as any).L
-
-    const map = L.map(mapRef.current, {
-      center: [loc.lat, loc.lon],
-      zoom: 14,
-      zoomControl: false,
-    })
+    const map = L.map(mapRef.current, { center: [loc.lat, loc.lon], zoom: 14, zoomControl: false })
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap', maxZoom: 19,
     }).addTo(map)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
-
     const userIcon = L.divIcon({
       html: `<div style="background:#16a34a;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏠</div>`,
       className: '', iconSize: [36, 36], iconAnchor: [18, 18],
     })
-    L.marker([loc.lat, loc.lon], { icon: userIcon })
-      .addTo(map)
-      .bindPopup('<b>📍 Lokasi Anda</b>')
-
+    L.marker([loc.lat, loc.lon], { icon: userIcon }).addTo(map).bindPopup('<b>📍 Lokasi Anda</b>')
     leafletMap.current = map
     setMapReady(true)
     setUserLocation(loc)
   }
 
-  // Start simulation after map ready
   useEffect(() => {
     if (!mapReady || !userLocation || simulationStarted.current) return
     simulationStarted.current = true
@@ -153,30 +140,38 @@ export default function TrackingPage() {
       const res = await fetch(`/api/locations?lat=${lat}&lon=${lon}&radius=5000`)
       const data = await res.json()
       if (data && data.length > 0) {
-        return {
-          id: data[0].id,
-          name: data[0].name,
-          lat: data[0].lat,
-          lon: data[0].lon,
-          address: data[0].address,
-          distance: data[0].distance,
-        }
+        return { id: data[0].id, name: data[0].name, lat: data[0].lat, lon: data[0].lon, address: data[0].address, distance: data[0].distance }
       }
     } catch { }
     return null
+  }
+
+  const fetchRandomDriver = async (): Promise<Driver> => {
+    try {
+      const res = await fetch('/api/drivers')
+      const data = await res.json()
+      return data
+    } catch {
+      return { name: 'Budi Santoso', phone: '081234567890', vehicle: 'Honda Vario · B 4521 XYZ', rating: '4.9' }
+    }
   }
 
   const startFlow = async (userLoc: UserLocation) => {
     const L = (window as any).L
     const map = leafletMap.current
 
-    const tpsPromise = fetchNearestTPS(userLoc.lat, userLoc.lon)
+    // Fetch driver dan TPS secara paralel
+    const [randomDriver, tpsPromise] = await Promise.all([
+      fetchRandomDriver(),
+      Promise.resolve(fetchNearestTPS(userLoc.lat, userLoc.lon)),
+    ])
+    setDriver(randomDriver)
 
     await delay(2500)
     setStatus('driver_found')
 
     const startPos: [number, number] = [userLoc.lat - 0.015, userLoc.lon + 0.012]
-    addDriverMarker(startPos)
+    addDriverMarker(startPos, randomDriver.name, randomDriver.vehicle)
 
     await delay(2000)
     setStatus('pickup')
@@ -201,8 +196,7 @@ export default function TrackingPage() {
         html: `<div style="background:#dc2626;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🗑️</div>`,
         className: '', iconSize: [36, 36], iconAnchor: [18, 18],
       })
-      L.marker([tps.lat, tps.lon], { icon: tpsIcon })
-        .addTo(map)
+      L.marker([tps.lat, tps.lon], { icon: tpsIcon }).addTo(map)
         .bindPopup(`<b>🗑️ ${tps.name}</b><br>${tps.address}`)
     }
 
@@ -229,7 +223,7 @@ export default function TrackingPage() {
     return new Promise<void>(res => { animRef.current = setTimeout(res, ms) })
   }
 
-  function addDriverMarker(pos: [number, number]) {
+  function addDriverMarker(pos: [number, number], name: string, vehicle: string) {
     const L = (window as any).L
     const map = leafletMap.current
     if (!map || !L) return
@@ -239,7 +233,7 @@ export default function TrackingPage() {
       className: '', iconSize: [40, 40], iconAnchor: [20, 20],
     })
     driverMarkerRef.current = L.marker(pos, { icon }).addTo(map)
-      .bindPopup(`<b>🛵 ${DRIVER.name}</b><br>${DRIVER.vehicle}`)
+      .bindPopup(`<b>🛵 ${name}</b><br>${vehicle}`)
   }
 
   async function animateDriver(route: [number, number][], stepMs: number, onStep?: (remaining: number) => void) {
@@ -301,16 +295,9 @@ export default function TrackingPage() {
         </div>
       )}
 
-      {/* Map - always rendered, GPS callback will init it */}
+      {/* Map */}
       <div className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg flex-shrink-0" style={{ height: '280px' }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-        {!mapReady && (
-          <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center gap-3 z-10"
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-            <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-500">Mendeteksi lokasi GPS...</p>
-          </div>
-        )}
       </div>
 
       {/* Map legend */}
@@ -339,21 +326,21 @@ export default function TrackingPage() {
       {status !== 'waiting' && status !== 'done' && (
         <div className="mx-4 mt-3 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-2xl">
-              {DRIVER.photo}
-            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-2xl">👨</div>
             <div className="flex-1">
-              <p className="font-semibold text-gray-800">{DRIVER.name}</p>
-              <p className="text-xs text-gray-400">{DRIVER.vehicle}</p>
+              <p className="font-semibold text-gray-800">{driver.name}</p>
+              <p className="text-xs text-gray-400">{driver.vehicle}</p>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-yellow-400 text-xs">⭐</span>
-                <span className="text-xs font-semibold text-gray-700">{DRIVER.rating}</span>
+                <span className="text-xs font-semibold text-gray-700">{driver.rating}</span>
               </div>
             </div>
-            <a href={`tel:${DRIVER.phone}`}
-              className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl pressable">
-              📞
-            </a>
+            {driver.phone && (
+              <a href={`tel:${driver.phone}`}
+                className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl pressable">
+                📞
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -424,7 +411,8 @@ export default function TrackingPage() {
           <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-6">
             <p className="text-center text-2xl mb-1">🛵</p>
             <h3 className="font-bold text-gray-800 text-lg text-center mb-1">Beri Rating Driver</h3>
-            <p className="text-gray-400 text-sm text-center mb-5">Bagaimana pelayanan {DRIVER.name}?</p>
+            <p className="text-gray-400 text-sm text-center mb-2">{driver.name}</p>
+            <p className="text-gray-400 text-sm text-center mb-5">Bagaimana pelayanannya?</p>
             <div className="flex justify-center gap-3 mb-5">
               {[1,2,3,4,5].map(star => (
                 <button key={star} onClick={() => setRating(star)}
