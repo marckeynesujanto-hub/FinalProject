@@ -59,7 +59,7 @@ export default function SubscriptionPage() {
 
   const handleSubmit = async () => {
   if (jadwal.length === 0) return alert('Pilih minimal 1 hari penjemputan')
-  // Pastikan userId tersedia (ambil dari localStorage atau state context Anda)
+  
   const userId = localStorage.getItem('user_id'); 
   console.log("DEBUG: Mengirim user_id =", userId);
   
@@ -78,7 +78,7 @@ export default function SubscriptionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, action: 'subscription' }),
       });
-      // ----------------------------------
+   
 
       const data = await res.json()
       setSubscriptions(prev => [...prev, data])

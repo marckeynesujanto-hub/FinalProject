@@ -71,7 +71,32 @@ export default function TrackingOrderPage() {
   const [mapLoaded, setMapLoaded] = useState(false)
   const [showRating, setShowRating] = useState(false)
   const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [ratingMessage, setRatingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const animRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Debug: Check Supabase config on mount
+  useEffect(() => {
+    console.log('🚀 [TrackingOrderPage] Component mounted')
+    console.log('🔧 [Supabase] Config check:')
+    console.log('  - URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Not set')
+    console.log('  - Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Not set')
+  }, [])
+
+  // Get current user from localStorage (like subscription does)
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('user_id')
+    console.log('📦 [localStorage] user_id:', storedUserId)
+    
+    if (storedUserId) {
+      console.log('✅ User loaded from localStorage:', storedUserId)
+      setUserId(storedUserId)
+    } else {
+      console.warn('⚠️ No user_id in localStorage. User might not be logged in.')
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -233,6 +258,68 @@ export default function TrackingOrderPage() {
   const currentStep = STATUS_STEPS.find(s => s.status === status) || STATUS_STEPS[0]
   const stepIndex = STATUS_STEPS.findIndex(s => s.status === status)
 
+  const handleSubmitRating = async () => {
+    console.log('📤 Submit Rating - userId:', userId, 'rating:', rating)
+    
+    if (!rating) {
+      setRatingMessage({ type: 'error', text: '⭐ Silakan pilih rating terlebih dahulu' })
+      return
+    }
+
+    if (!userId) {
+      console.error('❌ CRITICAL: userId is null/undefined')
+      setRatingMessage({ 
+        type: 'error', 
+        text: '❌ User tidak terautentikasi. Silakan logout dan login kembali.' 
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+    setRatingMessage(null)
+
+    try {
+      console.log('🔄 Sending request to /api/ratings with:', { user_id: userId, rating, comment })
+      
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          rating,
+          comment: comment || null,
+        }),
+      })
+
+      const data = await response.json()
+      console.log('📥 API Response:', { status: response.status, data })
+
+      if (!response.ok) {
+        const errorMsg = data.error || `HTTP ${response.status}`
+        throw new Error(errorMsg)
+      }
+
+      setRatingMessage({ type: 'success', text: '✅ Rating berhasil disimpan! +2 poin ditambahkan.' })
+      setTimeout(() => {
+        setShowRating(false)
+        setRating(0)
+        setComment('')
+        setRatingMessage(null)
+      }, 1500)
+    } catch (error) {
+      console.error('❌ Error submitting rating:', error)
+      const errorText = error instanceof Error ? error.message : 'Terjadi kesalahan server'
+      setRatingMessage({
+        type: 'error',
+        text: `❌ ${errorText}`,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -380,17 +467,50 @@ export default function TrackingOrderPage() {
             <p className="text-gray-400 text-sm text-center mb-5">Bagaimana pelayanan {DRIVER.name}?</p>
             <div className="flex justify-center gap-3 mb-5">
               {[1, 2, 3, 4, 5].map(star => (
-                <button key={star} onClick={() => setRating(star)}
-                  className={`text-4xl pressable transition-all ${star <= rating ? 'scale-110' : 'opacity-30'}`}>
+                <button key={star} onClick={() => {
+                  console.log('⭐ Clicked star:', star)
+                  setRating(star)
+                }}
+                  disabled={isSubmitting}
+                  className={`text-4xl pressable transition-all ${star <= rating ? 'scale-110' : 'opacity-30'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   ⭐
                 </button>
               ))}
             </div>
-            <button onClick={() => setShowRating(false)} disabled={rating === 0}
+
+            {/* Comment Field */}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Tambahkan komentar (opsional)"
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm resize-none focus:outline-none focus:border-teal-500 mb-4 disabled:opacity-50"
+              rows={3}
+            />
+
+            {ratingMessage && (
+              <div className={`mb-3 p-2 text-sm text-center rounded ${
+                ratingMessage.type === 'success'
+                  ? 'bg-teal-50 text-teal-700'
+                  : 'bg-red-50 text-red-700'
+              }`}>
+                {ratingMessage.text}
+              </div>
+            )}
+            <button onClick={handleSubmitRating} 
+              disabled={rating === 0 || isSubmitting}
               className="w-full bg-teal-600 disabled:bg-gray-200 disabled:text-gray-400 text-white py-3.5 rounded-2xl font-bold pressable">
-              Kirim Rating
+              {isSubmitting ? '⏳ Menyimpan...' : 'Kirim Rating'}
             </button>
-            <button onClick={() => setShowRating(false)}
+            <button onClick={() => {
+              if (!isSubmitting) {
+                setShowRating(false)
+                setRating(0)
+                setComment('')
+                setRatingMessage(null)
+              }
+            }}
+              disabled={isSubmitting}
               className="w-full mt-2 text-gray-400 text-sm py-2">
               Lewati
             </button>
