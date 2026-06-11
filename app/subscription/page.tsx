@@ -42,6 +42,7 @@ export default function SubscriptionPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [warning, setWarning] = useState('')
   const [ratingModal, setRatingModal] = useState<{ index: number } | null>(null)
 
   useEffect(() => {
@@ -52,9 +53,20 @@ export default function SubscriptionPage() {
   }, [])
 
   const toggleDay = (day: string) => {
-    setJadwal(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    )
+    setJadwal(prev => {
+      if (prev.includes(day)) {
+        setWarning('')
+        return prev.filter(d => d !== day)
+      }
+
+      if (paket === 'mingguan' && prev.length >= 4) {
+        setWarning('Melebihi batas 4 penjemputan untuk paket Mingguan.')
+        return prev
+      }
+
+      setWarning('')
+      return [...prev, day]
+    })
   }
 
   const handleSubmit = async () => {
@@ -199,8 +211,14 @@ export default function SubscriptionPage() {
               ))}
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              ℹ️ Jadwal dapat diubah maksimal H-1 sebelum penjemputan
+              ℹ️ Paket Mingguan maksimal 4 hari penjemputan per minggu.
             </p>
+            <p className="text-xs text-gray-400 mt-2">
+              ℹ️ Penggantian hari maksimal H-1 sebelum penjemputan.
+            </p>
+            {warning && (
+              <p className="text-xs text-red-500 mt-2 font-semibold">{warning}</p>
+            )}
           </div>
 
           {/* Waste Separation Guide */}
