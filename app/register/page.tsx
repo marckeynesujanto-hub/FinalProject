@@ -1,152 +1,211 @@
-
+// app/register/page.tsx
 'use client'
 import { useRegisterLogic } from './logic';
 
+const DISPLAY = "'Bricolage Grotesque', sans-serif"
+
 export default function RegisterPage() {
-  const { 
-    role, setRole, name, setName, email, setEmail, username, setUsername, 
-    password, setPassword, phone, setPhone, platNomor, setPlatNomor, 
-    loading, handleRegister, router 
+  const {
+    role, setRole, name, setName, email, setEmail, username, setUsername,
+    password, setPassword, phone, setPhone, platNomor, setPlatNomor,
+    loading, handleRegister, router
   } = useRegisterLogic();
-return (
-    <div style={{ padding: '20px', maxWidth: '400px', margin: '60px auto', color: 'black', fontFamily: 'sans-serif' }}>
-      <div style={{ background: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        
-        <h2 style={{ marginBottom: '20px', textAlign: 'center', color: '#1e293b' }}>Daftar Akun ThrashIn ♻️</h2>
-        
-        <form onSubmit={handleRegister}>
-          
-          {/* DROPDOWN UTAMA */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Daftar Sebagai:</label>
-            <select 
-              value={role} 
-              onChange={(e) => {
-                setRole(e.target.value)
-               
-                setPhone('')
-                setPlatNomor('')
-              }}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#fff' }}
-            >
-              <option value="users">User</option>
-              <option value="drivers">Driver</option>
-            </select>
+
+  const selectRole = (newRole: string) => {
+    setRole(newRole);
+    setPhone('');
+    setPlatNomor('');
+  };
+
+  const inputCls = "w-full bg-[#FBF8F0] border-[1.5px] border-[#E2DAC6] rounded-2xl pl-11 pr-4 py-3 text-sm font-medium text-[#2B2A23] placeholder-[#A8A492] focus:bg-white focus:border-[#47613A] focus:ring-4 focus:ring-[#47613A]/10 focus:outline-none transition-all"
+
+  return (
+    <div className="min-h-screen bg-[#F5F1E6] flex items-center justify-center p-5 relative overflow-hidden">
+      {/* Organic earthy blobs */}
+      <div className="absolute top-[-12%] left-[-14%] w-[58%] h-[42%] rounded-[48%_52%_55%_45%] bg-[#DDE7CC] blur-2xl opacity-70 pointer-events-none"></div>
+      <div className="absolute bottom-[-8%] right-[-12%] w-[50%] h-[38%] rounded-full bg-[#F0E0D3] blur-2xl opacity-60 pointer-events-none"></div>
+
+      <div className="w-full max-w-md bg-[#FFFDF7] p-8 rounded-[32px] border border-[#ECE4D2] shadow-[0_30px_60px_-24px_rgba(40,38,28,0.35)] z-10 my-8 animate-fade-in-up">
+        {/* Header */}
+        <div className="text-center mb-7">
+          <div className="w-16 h-16 bg-[#47613A] rounded-[20px_20px_22px_8px] flex items-center justify-center text-3xl shadow-[0_14px_26px_-8px_rgba(71,97,58,0.6)] mx-auto mb-4">
+            🌱
+          </div>
+          <h2 className="text-[28px] font-extrabold text-[#2B2A23] tracking-tight" style={{ fontFamily: DISPLAY }}>Daftar ThrashIn</h2>
+          <p className="text-[#6F6C5E] text-sm mt-2 font-medium">Gabung untuk kelola sampah &amp; raih poinnya</p>
+        </div>
+
+        <form onSubmit={handleRegister} className="space-y-5">
+          {/* Role Selection */}
+          <div>
+            <label className="block text-sm font-bold text-[#42402F] mb-2">Daftar Sebagai</label>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => selectRole('users')}
+                className={`py-3 rounded-2xl text-sm font-bold transition-all duration-200 border flex items-center justify-center gap-2 pressable ${
+                  role === 'users'
+                    ? 'bg-[#47613A] border-transparent text-[#F5F1E6] shadow-[0_10px_20px_-10px_rgba(71,97,58,0.7)]'
+                    : 'bg-[#FBF8F0] border-[#E2DAC6] text-[#6F6C5E] hover:bg-[#F2EDDF]'
+                }`}
+              >
+                👤 User
+              </button>
+              <button
+                type="button"
+                onClick={() => selectRole('drivers')}
+                className={`py-3 rounded-2xl text-sm font-bold transition-all duration-200 border flex items-center justify-center gap-2 pressable ${
+                  role === 'drivers'
+                    ? 'bg-[#47613A] border-transparent text-[#F5F1E6] shadow-[0_10px_20px_-10px_rgba(71,97,58,0.7)]'
+                    : 'bg-[#FBF8F0] border-[#E2DAC6] text-[#6F6C5E] hover:bg-[#F2EDDF]'
+                }`}
+              >
+                🏍️ Driver
+              </button>
+            </div>
           </div>
 
-          {/* INPUT NAMA (Berlaku untuk keduanya) */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nama Lengkap:</label>
-            <input 
-              type="text" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
-              placeholder={role === 'drivers' ? "Masukkan nama driver" : "Masukkan nama lengkap "}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-            />
+          {/* Full Name Input */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-[#42402F]">Nama Lengkap</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#A8A492]">
+                👤
+              </span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder={role === 'drivers' ? "Masukkan nama driver" : "Masukkan nama lengkap lu"}
+                className={inputCls}
+              />
+            </div>
           </div>
 
-          {/* 🚀 INPUT USERNAME  */}
-            {role === 'users' && (
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Username:</label>
-                <input 
-                  type="text" 
-                  value={username} 
-                  onChange={(e) => setUsername(e.target.value)} 
-                  required 
-                  placeholder="Masukkan username unik "
-                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
+          {/* Username Input (Only for Users) */}
+          {role === 'users' && (
+            <div className="space-y-1.5 animate-fade-in-up">
+              <label className="block text-sm font-bold text-[#42402F]">Username</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#A8A492]">
+                  🏷️
+                </span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="Masukkan username unik"
+                  className={inputCls}
                 />
               </div>
-            )}
-
-          {/* INPUT EMAIL (Berlaku untuk keduanya) */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
-            <input 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
-              placeholder="Masukkan email aktif"
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-            />
-          </div>
-
-          {/* INPUT NOMOR TELEPON (Berlaku untuk keduanya, dipetakan otomatis ke kolom masing-masing) */}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nomor Telepon:</label>
-            <input 
-              type="text" 
-              value={phone} 
-              onChange={(e) => setPhone(e.target.value)} 
-              required 
-              placeholder="Contoh: 0812xxxxxxxx"
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-            />
-          </div>
-
-          {/*  KHUSUS JIKA MEMILIH DRIVER */}
-          {role === 'drivers' && (
-            <div style={{ marginBottom: '15px', padding: '10px', background: '#f8fafc', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#0f172a' }}>Plat Nomor Kendaraan:</label>
-              <input 
-                type="text" 
-                value={platNomor} 
-                onChange={(e) => setPlatNomor(e.target.value)} 
-                required 
-                placeholder="Contoh: B 1234 ABC"
-                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-              />
             </div>
           )}
 
-          {/* INPUT PASSWORD (Berlaku untuk keduanya) */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Password:</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-              placeholder="Buat password akun"
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-            />
+          {/* Email Input */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-[#42402F]">Email</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#A8A492]">
+                ✉️
+              </span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Masukkan email aktif"
+                className={inputCls}
+              />
+            </div>
           </div>
 
-          {/* TOMBOL SUBMIT */}
-          <button 
-            type="submit" 
-            disabled={loading} 
-            style={{ 
-              padding: '12px', 
-              background: '#486e56', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: '4px', 
-              width: '100%', 
-              cursor: 'pointer', 
-              fontWeight: 'bold', 
-              fontSize: '16px' 
-            }}
+          {/* Phone Number Input */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-[#42402F]">Nomor Telepon</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#A8A492]">
+                📞
+              </span>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                placeholder="Contoh: 0812xxxxxxxx"
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          {/* Plat Nomor Input (Only for Drivers) */}
+          {role === 'drivers' && (
+            <div className="space-y-1.5 p-4 bg-[#E8EEDD] rounded-2xl border border-dashed border-[#A9BE95] animate-fade-in-up">
+              <label className="block text-sm font-bold text-[#42402F] mb-1">Plat Nomor Kendaraan</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#A8A492]">
+                  🚗
+                </span>
+                <input
+                  type="text"
+                  value={platNomor}
+                  onChange={(e) => setPlatNomor(e.target.value)}
+                  required
+                  placeholder="Contoh: B 1234 ABC"
+                  className="w-full bg-white border border-[#D6E0C5] rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-[#2B2A23] placeholder-[#A8A492] focus:border-[#47613A] focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Password Input */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-[#42402F]">Password</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-[#A8A492]">
+                🔒
+              </span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Buat password akun"
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ fontFamily: DISPLAY }}
+            className="w-full py-4 mt-1 bg-[#47613A] text-[#F8F5EC] border-none rounded-2xl font-bold text-base tracking-tight transition-all shadow-[0_16px_28px_-12px_rgba(71,97,58,0.7)] hover:scale-[1.02] active:scale-[0.98] disabled:bg-[#C5C0AE] disabled:shadow-none disabled:pointer-events-none flex items-center justify-center gap-2 pressable"
           >
-            {loading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Mendaftarkan...
+              </>
+            ) : (
+              'Daftar Sekarang 🚀'
+            )}
           </button>
         </form>
 
-        <p style={{ marginTop: '20px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+        {/* Footer Link */}
+        <p className="mt-7 text-center text-[#6F6C5E] text-sm font-medium">
           Sudah punya akun?{' '}
-          <span 
-            onClick={() => router.push('/login')} 
-            style={{ color: '#178fff', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
+          <span
+            onClick={() => router.push('/login')}
+            className="text-[#C06B41] hover:text-[#A8552F] cursor-pointer font-bold hover:underline transition-colors"
           >
             Login di sini
           </span>
         </p>
-
       </div>
     </div>
-  )
+  );
 }

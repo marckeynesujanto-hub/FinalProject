@@ -1,6 +1,10 @@
+// app/tracking/page.tsx
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+const DISPLAY = "'Bricolage Grotesque', sans-serif"
 
 function generateRoute(from: [number, number], to: [number, number], steps = 20): [number, number][] {
   const route: [number, number][] = []
@@ -49,6 +53,7 @@ interface UserLocation {
 }
 
 export default function TrackingPage() {
+  const router = useRouter()
   const mapRef = useRef<HTMLDivElement>(null)
   const leafletMap = useRef<any>(null)
   const driverMarkerRef = useRef<any>(null)
@@ -120,8 +125,8 @@ export default function TrackingPage() {
     }).addTo(map)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
     const userIcon = L.divIcon({
-      html: `<div style="background:#16a34a;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏠</div>`,
-      className: '', iconSize: [36, 36], iconAnchor: [18, 18],
+      html: `<div style="background:#47613A;width:24px;height:24px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.25);">🏠</div>`,
+      className: '', iconSize: [24, 24], iconAnchor: [12, 12],
     })
     L.marker([loc.lat, loc.lon], { icon: userIcon }).addTo(map).bindPopup('<b>📍 Lokasi Anda</b>')
     leafletMap.current = map
@@ -160,7 +165,6 @@ export default function TrackingPage() {
     const L = (window as any).L
     const map = leafletMap.current
 
-    // Fetch driver dan TPS secara paralel
     const [randomDriver, tpsPromise] = await Promise.all([
       fetchRandomDriver(),
       Promise.resolve(fetchNearestTPS(userLoc.lat, userLoc.lon)),
@@ -193,8 +197,8 @@ export default function TrackingPage() {
 
     if (tps && map && L) {
       const tpsIcon = L.divIcon({
-        html: `<div style="background:#dc2626;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🗑️</div>`,
-        className: '', iconSize: [36, 36], iconAnchor: [18, 18],
+        html: `<div style="background:#B0564C;width:24px;height:24px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.25);">🗑️</div>`,
+        className: '', iconSize: [24, 24], iconAnchor: [12, 12],
       })
       L.marker([tps.lat, tps.lon], { icon: tpsIcon }).addTo(map)
         .bindPopup(`<b>🗑️ ${tps.name}</b><br>${tps.address}`)
@@ -229,8 +233,8 @@ export default function TrackingPage() {
     if (!map || !L) return
     if (driverMarkerRef.current) map.removeLayer(driverMarkerRef.current)
     const icon = L.divIcon({
-      html: `<div style="background:#f59e0b;width:40px;height:40px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 10px rgba(0,0,0,0.4);">🛵</div>`,
-      className: '', iconSize: [40, 40], iconAnchor: [20, 20],
+      html: `<div style="background:#C06B41;width:38px;height:38px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.3);font-size:16px;">🛵</div>`,
+      className: '', iconSize: [38, 38], iconAnchor: [19, 19],
     })
     driverMarkerRef.current = L.marker(pos, { icon }).addTo(map)
       .bindPopup(`<b>🛵 ${name}</b><br>${vehicle}`)
@@ -242,7 +246,7 @@ export default function TrackingPage() {
     if (!map || !L) return
     if (routeLineRef.current) map.removeLayer(routeLineRef.current)
     routeLineRef.current = L.polyline(route, {
-      color: '#f59e0b', weight: 4, opacity: 0.7, dashArray: '8,8',
+      color: '#C06B41', weight: 4, opacity: 0.7, dashArray: '8,8',
     }).addTo(map)
     for (let i = 0; i < route.length; i++) {
       await delay(stepMs)
@@ -258,86 +262,102 @@ export default function TrackingPage() {
   const stepIndex = STATUS_STEPS.findIndex(s => s.status === status)
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#F5F1E6] flex flex-col pb-10">
       {/* Header */}
-      <div className="bg-green-600 px-5 pt-14 pb-5 rounded-b-3xl flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">
-            {currentStep.icon}
-          </div>
-          <div>
-            <h1 className="text-white text-lg font-bold">{currentStep.label}</h1>
-            <p className="text-green-100 text-xs mt-0.5">{currentStep.desc}</p>
+      <div className="bg-gradient-to-br from-[#4E6A41] to-[#3C5331] px-5 pt-16 pb-6 rounded-b-[34px] shadow-[0_20px_40px_-24px_rgba(40,38,28,0.5)] flex-shrink-0 relative overflow-hidden">
+        <div className="absolute right-[-10%] top-[-20%] w-44 h-44 bg-[#56724A] rounded-full opacity-55 pointer-events-none"></div>
+
+        <div className="flex items-center gap-3.5 mb-5 relative z-10">
+          <button onClick={() => router.push('/home')} className="w-10 h-10 bg-white/12 hover:bg-white/22 rounded-2xl flex items-center justify-center text-white text-lg transition-all pressable">
+            ←
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/18 rounded-xl flex items-center justify-center text-xl">
+              {currentStep.icon}
+            </div>
+            <div>
+              <h1 className="text-white text-base font-extrabold tracking-tight" style={{ fontFamily: DISPLAY }}>{currentStep.label}</h1>
+              <p className="text-[#AFC09C] text-[10px] mt-0.5 font-medium leading-relaxed">{currentStep.desc}</p>
+            </div>
           </div>
         </div>
-        <div className="mt-4 flex gap-1">
+
+        {/* Progress tracker steps */}
+        <div className="mt-4 flex gap-1.5 relative z-10">
           {STATUS_STEPS.map((s, i) => (
             <div key={s.status}
               className={`flex-1 h-1.5 rounded-full transition-all duration-500
-                ${i <= stepIndex ? 'bg-white' : 'bg-white/30'}`} />
+                ${i <= stepIndex ? 'bg-white' : 'bg-white/25'}`} />
           ))}
         </div>
       </div>
 
-      {/* TPS Info */}
+      {/* TPS Info Panel */}
       {status === 'to_tps' && nearestTPS && (
-        <div className="mx-4 mt-4 bg-red-50 rounded-2xl p-4 border border-red-200 shadow-sm flex items-center gap-3">
-          <div className="w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center text-2xl">🗑️</div>
-          <div className="flex-1">
-            <p className="font-semibold text-gray-800 text-sm">{nearestTPS.name}</p>
-            <p className="text-xs text-gray-400 truncate">📍 {nearestTPS.address}</p>
-            <p className="text-xs text-red-600 font-semibold mt-0.5">
+        <div className="mx-4 mt-5 bg-[#F3E1DE] rounded-[24px] p-5 border border-[#E3C2BC] shadow-[0_10px_24px_-16px_rgba(40,38,28,0.3)] flex items-center gap-3.5 animate-fade-in-up">
+          <div className="w-12 h-12 bg-[#E6C8C2] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">🗑️</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-extrabold text-[#2B2A23] text-sm truncate">{nearestTPS.name}</p>
+            <p className="text-[10px] text-[#A8A492] font-semibold truncate mt-0.5">📍 {nearestTPS.address}</p>
+            <p className="text-[10px] text-[#B0564C] font-bold mt-1">
               {nearestTPS.distance < 1
-                ? `${Math.round(nearestTPS.distance * 1000)} m dari lokasi Anda`
-                : `${nearestTPS.distance.toFixed(1)} km dari lokasi Anda`}
+                ? `● Jarak ${Math.round(nearestTPS.distance * 1000)} m dari rumah Anda`
+                : `● Jarak ${nearestTPS.distance.toFixed(1)} km dari rumah Anda`}
             </p>
           </div>
         </div>
       )}
 
-      {/* Map */}
-      <div className="mx-4 mt-4 rounded-2xl overflow-hidden shadow-lg flex-shrink-0" style={{ height: '280px' }}>
+      {/* Interactive Map Frame */}
+      <div className="mx-4 mt-5 rounded-[24px] overflow-hidden shadow-[0_18px_36px_-22px_rgba(40,38,28,0.4)] flex-shrink-0 border border-[#E2DAC6] relative" style={{ height: '280px' }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+        {status === 'waiting' && (
+          <div className="absolute inset-0 bg-[#F5F1E6]/80 backdrop-blur-sm flex items-center justify-center z-[999]">
+            <div className="w-8 h-8 border-4 border-[#47613A] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
 
-      {/* Map legend */}
-      <div className="mx-4 mt-2 flex gap-3 text-xs text-gray-500 flex-wrap">
-        <span>🏠 Lokasi Anda</span>
-        <span>🛵 Driver</span>
-        {nearestTPS && <span>🗑️ {nearestTPS.name}</span>}
+      {/* Map Legend */}
+      <div className="mx-5 mt-2.5 flex gap-4 text-[10px] text-[#A8A492] font-bold uppercase tracking-wider flex-wrap">
+        <span className="flex items-center gap-1">🏠 Lokasi Anda</span>
+        <span className="flex items-center gap-1 text-[#C06B41]">🛵 Titik Driver</span>
+        {nearestTPS && <span className="flex items-center gap-1 text-[#B0564C]">🗑️ {nearestTPS.name}</span>}
       </div>
 
-      {/* ETA */}
+      {/* ETA Display Card */}
       {status !== 'done' && status !== 'waiting' && (
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-xl">⏱️</div>
+        <div className="mx-4 mt-5 bg-[#FFFDF7] rounded-[24px] p-5 border border-[#ECE4D2] shadow-[0_10px_24px_-16px_rgba(40,38,28,0.3)] flex items-center gap-3.5 animate-fade-in-up">
+          <div className="w-12 h-12 bg-[#F6EBCF] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">⏱️</div>
           <div className="flex-1">
-            <p className="text-xs text-gray-400">
-              {status === 'to_tps' ? `Estimasi tiba di ${nearestTPS?.name || 'TPS'}` : 'Estimasi tiba di lokasi Anda'}
+            <p className="text-[10px] text-[#A8A492] font-extrabold uppercase tracking-widest">
+              {status === 'to_tps' ? `Estimasi Tiba di ${nearestTPS?.name || 'TPS'}` : 'Estimasi Tiba di Lokasi Anda'}
             </p>
-            <p className="font-bold text-gray-800 text-lg">
-              {eta === 0 ? 'Sudah tiba!' : `${eta} menit lagi`}
+            <p className="font-extrabold text-[#2B2A23] text-lg mt-0.5" style={{ fontFamily: DISPLAY }}>
+              {eta === 0 ? 'Sudah Tiba di Lokasi! 🎉' : `${eta} Menit Lagi`}
             </p>
           </div>
         </div>
       )}
 
-      {/* Driver info */}
+      {/* Driver Detail Card */}
       {status !== 'waiting' && status !== 'done' && (
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-2xl">👨</div>
-            <div className="flex-1">
-              <p className="font-semibold text-gray-800">{driver.name}</p>
-              <p className="text-xs text-gray-400">{driver.vehicle}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-yellow-400 text-xs">⭐</span>
-                <span className="text-xs font-semibold text-gray-700">{driver.rating}</span>
+        <div className="mx-4 mt-3 bg-[#FFFDF7] rounded-[24px] p-5 border border-[#ECE4D2] shadow-[0_10px_24px_-16px_rgba(40,38,28,0.3)] animate-fade-in-up">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 bg-[#F6EBCF] rounded-full flex items-center justify-center text-3xl flex-shrink-0">👨</div>
+              <div>
+                <p className="font-extrabold text-[#2B2A23] text-sm leading-none">{driver.name}</p>
+                <p className="text-[10.5px] text-[#A8A492] font-bold mt-1.5">{driver.vehicle}</p>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="text-[#CE9A36] text-sm">⭐</span>
+                  <span className="text-[10px] font-extrabold text-[#42402F]">{driver.rating} Rating</span>
+                </div>
               </div>
             </div>
             {driver.phone && (
               <a href={`tel:${driver.phone}`}
-                className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl pressable">
+                className="w-11 h-11 bg-[#E8EEDD] text-[#47613A] rounded-2xl flex items-center justify-center text-xl border border-[#D6E0C5] transition-all active:scale-95 pressable">
                 📞
               </a>
             )}
@@ -345,49 +365,49 @@ export default function TrackingPage() {
         </div>
       )}
 
-      {/* Waiting */}
+      {/* Searching Driver animation card */}
       {status === 'waiting' && (
-        <div className="mx-4 mt-3 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-center">
+        <div className="mx-4 mt-4 bg-[#FFFDF7] rounded-[24px] p-6 border border-[#ECE4D2] shadow-[0_10px_24px_-16px_rgba(40,38,28,0.3)] text-center animate-fade-in-up">
           <div className="flex justify-center gap-2 mb-3">
             {[0, 1, 2].map(i => (
-              <div key={i} className="w-3 h-3 bg-green-400 rounded-full animate-bounce"
+              <div key={i} className="w-3.5 h-3.5 bg-[#47613A] rounded-full animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
-          <p className="text-gray-600 font-medium">Mencari driver terdekat...</p>
-          <p className="text-gray-400 text-sm mt-1">Mohon tunggu sebentar</p>
+          <p className="text-[#42402F] font-extrabold text-sm" style={{ fontFamily: DISPLAY }}>Mencari Driver ThrashIn Terdekat...</p>
+          <p className="text-[#A8A492] text-xs mt-1 font-semibold">Mohon lu tunggu sebentar ya, sistem sedang memproses</p>
         </div>
       )}
 
-      {/* Status timeline */}
-      <div className="mx-4 mt-3 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Status Order</p>
-        <div className="flex flex-col">
+      {/* Status vertical timeline checklist */}
+      <div className="mx-4 mt-4 bg-[#FFFDF7] rounded-[24px] p-5 border border-[#ECE4D2] shadow-[0_10px_24px_-16px_rgba(40,38,28,0.3)]">
+        <p className="text-[10px] text-[#A8A492] font-extrabold uppercase tracking-widest mb-4 ml-1">Langkah Penjemputan</p>
+        <div className="flex flex-col space-y-1">
           {STATUS_STEPS.map((s, i) => {
             const done = i < stepIndex
             const active = i === stepIndex
             return (
-              <div key={s.status} className="flex items-start gap-3">
+              <div key={s.status} className="flex items-start gap-4 animate-fade-in-up">
                 <div className="flex flex-col items-center">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all
-                    ${done ? 'bg-green-500 border-green-500 text-white'
-                      : active ? 'bg-green-600 border-green-600 text-white scale-110'
-                      : 'bg-white border-gray-200 text-gray-300'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 transition-all
+                    ${done ? 'bg-[#47613A] border-[#47613A] text-white'
+                      : active ? 'bg-[#47613A] border-[#47613A] text-white scale-110 ring-4 ring-[#D6E0C5]'
+                      : 'bg-[#FFFDF7] border-[#E2DAC6] text-[#C9C0A9]'}`}>
                     {done ? '✓' : s.icon}
                   </div>
                   {i < STATUS_STEPS.length - 1 && (
-                    <div className={`w-0.5 h-5 ${done ? 'bg-green-400' : 'bg-gray-100'}`} />
+                    <div className={`w-0.5 h-6 my-0.5 ${done ? 'bg-[#8FA67C]' : 'bg-[#E7E0CF]'}`} />
                   )}
                 </div>
-                <div className="flex-1 pb-1">
-                  <p className={`text-sm font-medium
-                    ${active ? 'text-green-600' : done ? 'text-gray-700' : 'text-gray-300'}`}>
+                <div className="flex-1 pb-2 mt-1">
+                  <p className={`text-xs font-extrabold
+                    ${active ? 'text-[#47613A] text-sm' : done ? 'text-[#42402F]' : 'text-[#C9C0A9]'}`}>
                     {s.label}
                     {s.status === 'to_tps' && nearestTPS && active && (
-                      <span className="text-xs text-gray-400 ml-1">→ {nearestTPS.name}</span>
+                      <span className="text-[9px] bg-[#F3E1DE] text-[#9A4339] px-2 py-0.5 rounded-md font-bold uppercase ml-2">→ {nearestTPS.name}</span>
                     )}
                   </p>
-                  {active && <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>}
+                  {active && <p className="text-[10px] text-[#A8A492] mt-1 font-semibold leading-relaxed">{s.desc}</p>}
                 </div>
               </div>
             )
@@ -395,38 +415,51 @@ export default function TrackingPage() {
         </div>
       </div>
 
-      {/* Done */}
+      {/* Done summary card */}
       {status === 'done' && (
-        <div className="mx-4 mb-4 bg-green-50 rounded-2xl p-4 border border-green-200 text-center">
-          <p className="text-3xl mb-2">🎉</p>
-          <p className="font-bold text-green-800">Sampah berhasil dibuang!</p>
-          {nearestTPS && <p className="text-green-600 text-xs mt-1">Dibuang ke {nearestTPS.name}</p>}
-          <p className="text-green-600 text-sm mt-1">+10 poin telah ditambahkan ke akun Anda</p>
+        <div className="mx-4 mt-5 bg-[#47613A] rounded-[24px] p-5 text-center text-white shadow-[0_18px_34px_-20px_rgba(71,97,58,0.7)] animate-fade-in-up relative overflow-hidden">
+          <div className="absolute right-[-8%] top-[-30%] w-32 h-32 bg-[#56724A] rounded-full opacity-50 pointer-events-none"></div>
+          <p className="text-4xl mb-2 relative z-10">🎉</p>
+          <p className="font-extrabold text-base relative z-10" style={{ fontFamily: DISPLAY }}>Sampah Berhasil Didaur Ulang!</p>
+          {nearestTPS && <p className="text-[#CBD8B9] text-xs mt-1 font-medium relative z-10">Bahan dibuang aman ke {nearestTPS.name}</p>}
+          <p className="text-[#E9C46A] text-sm font-extrabold mt-1.5 relative z-10">+10 Poin terkumpul telah ditambahkan ke saldo akun Anda</p>
+
+          <button
+            onClick={() => router.push('/home')}
+            style={{ fontFamily: DISPLAY }}
+            className="w-full mt-4 bg-[#FFFDF7] text-[#47613A] py-3 rounded-2xl font-bold text-xs active:scale-95 transition-all pressable relative z-10"
+          >
+            Kembali ke Beranda
+          </button>
         </div>
       )}
 
-      {/* Rating modal */}
+      {/* Rating stars modal popup */}
       {showRating && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-6">
-            <p className="text-center text-2xl mb-1">🛵</p>
-            <h3 className="font-bold text-gray-800 text-lg text-center mb-1">Beri Rating Driver</h3>
-            <p className="text-gray-400 text-sm text-center mb-2">{driver.name}</p>
-            <p className="text-gray-400 text-sm text-center mb-5">Bagaimana pelayanannya?</p>
-            <div className="flex justify-center gap-3 mb-5">
+        <div className="fixed inset-0 bg-black/60 flex items-end justify-center z-50 animate-fade-in">
+          <div className="bg-[#FFFDF7] w-full max-w-md rounded-t-[28px] p-6 shadow-2xl animate-slide-in-up">
+            <div className="w-12 h-1 bg-[#E2DAC6] rounded-full mx-auto mb-4"></div>
+            <p className="text-center text-3xl mb-1">🛵</p>
+            <h3 className="font-extrabold text-[#2B2A23] text-lg text-center mb-1" style={{ fontFamily: DISPLAY }}>Beri Ulasan Driver</h3>
+            <p className="text-[#6F6C5E] text-xs text-center mb-1.5 font-semibold">{driver.name}</p>
+            <p className="text-[#A8A492] text-xs text-center mb-6 font-semibold">Bagaimana pelayanan penjemputan driver Anda hari ini?</p>
+
+            <div className="flex justify-center gap-4 mb-6">
               {[1,2,3,4,5].map(star => (
                 <button key={star} onClick={() => setRating(star)}
-                  className={`text-4xl pressable transition-all ${star <= rating ? 'scale-110' : 'opacity-30'}`}>
+                  className={`text-4xl pressable transition-all hover:scale-110 active:scale-95 ${star <= rating ? 'scale-105 filter drop-shadow' : 'opacity-25'}`}>
                   ⭐
                 </button>
               ))}
             </div>
+
             <button onClick={() => setShowRating(false)} disabled={rating === 0}
-              className="w-full bg-green-600 disabled:bg-gray-200 disabled:text-gray-400 text-white py-3.5 rounded-2xl font-bold pressable">
-              Kirim Rating
+              style={{ fontFamily: DISPLAY }}
+              className="w-full bg-[#47613A] disabled:bg-[#C5C0AE] disabled:shadow-none text-white py-4 rounded-2xl font-bold text-xs shadow-[0_16px_28px_-12px_rgba(71,97,58,0.7)] active:scale-[0.98] transition-all pressable mb-2">
+              Kirim Ulasan &amp; Selesai 🚀
             </button>
-            <button onClick={() => setShowRating(false)} className="w-full mt-2 text-gray-400 text-sm py-2">
-              Lewati
+            <button onClick={() => setShowRating(false)} className="w-full text-[#A8A492] hover:text-[#6F6C5E] text-xs font-bold py-2.5 transition-colors">
+              Lewati Penilaian
             </button>
           </div>
         </div>
