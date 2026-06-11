@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Spinner } from '@/components/ui/Spinner'
+import { Spinner } from '@/app/components/ui/Spinner'
 
 interface RatingModalProps {
   title: string

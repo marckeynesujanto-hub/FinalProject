@@ -1,6 +1,6 @@
 'use client'
 
-import { useToast } from '@/lib/hooks/useToast'
+import { useToast } from '@/app/lib/hooks/useToast'
 
 const styles = {
   success: 'bg-green-600 text-white',

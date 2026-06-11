@@ -1,7 +1,7 @@
 'use client'
 
-import { ToastProvider } from '@/lib/hooks/useToast'
-import { ToastContainer } from '@/components/ui/ToastContainer'
+import { ToastProvider } from '@/app/lib/hooks/useToast'
+import { ToastContainer } from '@/app/components/ui/ToastContainer'
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
