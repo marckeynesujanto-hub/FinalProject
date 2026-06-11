@@ -8,7 +8,7 @@ import {
   getUserRole,
   isAuthenticated,
   type UserRole,
-} from '@/lib/auth/session'
+} from '@/app/lib/auth/session'
 
 export function useRequireAuth() {
   const router = useRouter()

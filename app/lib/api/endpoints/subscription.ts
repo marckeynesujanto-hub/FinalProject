@@ -1,8 +1,8 @@
-import { api } from '@/lib/api/client'
+import { api } from '@/app/lib/api/client'
 import type {
   CreateSubscriptionPayload,
   Subscription,
-} from '@/lib/types/api'
+} from '@/app/lib/types/api'
 
 export const subscriptionApi = {
   getAll: () => api.get<Subscription[]>('/api/subscription'),

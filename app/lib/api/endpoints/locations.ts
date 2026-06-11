@@ -1,5 +1,5 @@
-import { api } from '@/lib/api/client'
-import type { OverpassElement, WasteLocation } from '@/lib/types/api'
+import { api } from '@/app/lib/api/client'
+import type { OverpassElement, WasteLocation } from '@/app/lib/types/api'
 
 function mapOverpassElement(el: OverpassElement): WasteLocation {
   const tags = el.tags ?? {}

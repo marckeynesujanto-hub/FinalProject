@@ -1,5 +1,5 @@
-import { api } from '@/lib/api/client'
-import type { RatingPayload, RatingResponse } from '@/lib/types/api'
+import { api } from '@/app/lib/api/client'
+import type { RatingPayload, RatingResponse } from '@/app/lib/types/api'
 
 export const ratingsApi = {
   submit: (payload: RatingPayload) =>

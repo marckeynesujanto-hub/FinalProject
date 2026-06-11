@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from '@/lib/config/env'
+import { getApiBaseUrl } from '@/app/lib/config/env'
 
 export class ApiClientError extends Error {
   constructor(
