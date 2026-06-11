@@ -1,7 +1,6 @@
 'use client'
-
-import { useRequireAuth } from '@/lib/hooks/useAuth'
-import { PageSkeleton } from '@/components/ui/Skeleton'
+import { useRequireAuth } from '@/app/lib/hooks/useAuth'
+import { PageSkeleton } from '@/app/components/ui/Skeleton'
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { ready } = useRequireAuth()
