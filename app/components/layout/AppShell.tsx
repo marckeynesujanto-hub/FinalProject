@@ -1,7 +1,7 @@
 'use client'
 
-import { AuthGuard } from '@/components/auth/AuthGuard'
-import { BottomNav } from '@/components/layout/BottomNav'
+import { AuthGuard } from '@/app/components/auth/AuthGuard'
+import { BottomNav } from '@/app/components/layout/BottomNav'
 
 interface AppShellProps {
   children: React.ReactNode
